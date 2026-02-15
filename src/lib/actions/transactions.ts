@@ -56,7 +56,7 @@ export async function createTransaction(data: TransactionData) {
 export async function getTransactions(entityId?: number) {
   try {
     const result = await queryTransactions(
-      entityId ? { entity_id: entityId } : undefined
+      entityId ? { entity_id: entityId } : undefined,
     );
 
     return { success: true, data: result };

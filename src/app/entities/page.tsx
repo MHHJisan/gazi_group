@@ -6,10 +6,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Building2, Plus, Edit, Trash2, Eye } from "lucide-react";
+import { Building2 } from "lucide-react";
 import { EntityForm } from "@/components/entities/entity-form";
+import { EntityActions } from "@/components/entities/entity-actions";
 import { getEntities } from "@/lib/actions/entities";
 
 export default async function Entities() {
@@ -50,25 +50,27 @@ export default async function Entities() {
                       <strong>Owner ID:</strong> {entity.owner_id}
                     </div>
                     <div>
-                      <strong>Created:</strong> {new Date(entity.created_at).toLocaleDateString()}
+                      <strong>Created:</strong>{" "}
+                      {new Date(entity.created_at).toLocaleDateString()}
                     </div>
                   </div>
                   <div className="flex gap-2 mt-4">
-                    <Button size="sm" variant="outline">
-                      <Eye className="mr-1 h-3 w-3" />
-                      View
-                    </Button>
-                    <Button size="sm" variant="outline">
-                      <Edit className="mr-1 h-3 w-3" />
-                      Edit
-                    </Button>
+                    <EntityActions
+                      entity={{
+                        id: entity.id,
+                        name: entity.name,
+                        type: entity.type as "BUSINESS" | "PROPERTY",
+                      }}
+                    />
                   </div>
                 </CardContent>
               </Card>
             ))
           ) : (
             <div className="col-span-full text-center py-8">
-              <p className="text-muted-foreground">No entities found. Create one to get started!</p>
+              <p className="text-muted-foreground">
+                No entities found. Create one to get started!
+              </p>
             </div>
           )}
         </div>

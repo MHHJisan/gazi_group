@@ -20,6 +20,7 @@ export type Entity = {
   id: number;
   name: string;
   type: "BUSINESS" | "PROPERTY";
+  address?: string | null;
   owner_id: number;
   created_at: string;
   updated_at: string;
@@ -96,4 +97,24 @@ export async function insertTransaction(
 
   if (error) throw error;
   return data?.[0] as Transaction;
+}
+export async function updateEntity(
+  id: number,
+  entity: Partial<Omit<Entity, "id" | "created_at" | "updated_at">>,
+) {
+  const { data, error } = await supabase
+    .from("entities")
+    .update(entity)
+    .eq("id", id)
+    .select();
+
+  if (error) throw error;
+  return data?.[0] as Entity;
+}
+
+export async function deleteEntity(id: number) {
+  const { error } = await supabase.from("entities").delete().eq("id", id);
+
+  if (error) throw error;
+  return true;
 }

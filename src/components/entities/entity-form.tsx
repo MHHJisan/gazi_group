@@ -29,13 +29,14 @@ export function EntityForm() {
   const [formData, setFormData] = useState({
     name: "",
     type: "",
+    address: "",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!formData.name || !formData.type) {
-      alert("Please fill in all fields");
+      alert("Please fill in all required fields");
       return;
     }
 
@@ -45,6 +46,7 @@ export function EntityForm() {
       const result = await createEntity(
         formData.name,
         formData.type as "BUSINESS" | "PROPERTY",
+        formData.address || undefined,
       );
 
       if (result.success) {
@@ -52,6 +54,7 @@ export function EntityForm() {
         setFormData({
           name: "",
           type: "",
+          address: "",
         });
         // Refresh page to show new entity
         window.location.reload();
@@ -122,6 +125,18 @@ export function EntityForm() {
                   <SelectItem value="PROPERTY">Property</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="address" className="text-right">
+                Address
+              </Label>
+              <Input
+                id="address"
+                value={formData.address}
+                onChange={(e) => handleInputChange("address", e.target.value)}
+                className="col-span-3"
+                placeholder="Entity address (optional)"
+              />
             </div>
           </div>
           <DialogFooter>

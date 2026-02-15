@@ -18,10 +18,27 @@ import {
 } from "lucide-react";
 import { TransactionForm } from "@/components/transactions/transaction-form";
 import { getEntities } from "@/lib/actions/entities";
+import { getTransactions } from "@/lib/actions/transactions";
 
 export default async function Transactions() {
   const entitiesResult = await getEntities();
+  const transactionsResult = await getTransactions();
+
   const entities = entitiesResult.success ? entitiesResult.data || [] : [];
+  const transactions = transactionsResult.success
+    ? transactionsResult.data || []
+    : [];
+
+  // Calculate totals
+  const totalIncome = transactions
+    .filter((t) => t.type === "INCOME")
+    .reduce((sum, t) => sum + parseFloat(t.amount || "0"), 0);
+
+  const totalExpenses = transactions
+    .filter((t) => t.type === "EXPENSE")
+    .reduce((sum, t) => sum + parseFloat(t.amount || "0"), 0);
+
+  const netBalance = totalIncome - totalExpenses;
 
   return (
     <DashboardLayout>
@@ -72,10 +89,11 @@ export default async function Transactions() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-green-600">
-                $45,231.89
+                ${totalIncome.toFixed(2)}
               </div>
               <p className="text-xs text-muted-foreground">
-                +20.1% from last month
+                From {transactions.filter((t) => t.type === "INCOME").length}{" "}
+                transactions
               </p>
             </CardContent>
           </Card>
@@ -88,9 +106,12 @@ export default async function Transactions() {
               <ArrowDownRight className="h-4 w-4 text-red-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-600">$12,234.89</div>
+              <div className="text-2xl font-bold text-red-600">
+                ${totalExpenses.toFixed(2)}
+              </div>
               <p className="text-xs text-muted-foreground">
-                -5.3% from last month
+                From {transactions.filter((t) => t.type === "EXPENSE").length}{" "}
+                transactions
               </p>
             </CardContent>
           </Card>
@@ -101,9 +122,9 @@ export default async function Transactions() {
               <ArrowUpRight className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">$32,997.00</div>
+              <div className="text-2xl font-bold">${netBalance.toFixed(2)}</div>
               <p className="text-xs text-muted-foreground">
-                +35.2% from last month
+                {transactions.length} total transactions
               </p>
             </CardContent>
           </Card>
@@ -118,95 +139,57 @@ export default async function Transactions() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex items-center space-x-4">
-                  <div className="p-2 bg-green-100 rounded-full">
-                    <ArrowUpRight className="h-4 w-4 text-green-600" />
+              {transactions && transactions.length > 0 ? (
+                transactions.map((transaction) => (
+                  <div
+                    key={transaction.id}
+                    className="flex items-center justify-between p-4 border rounded-lg"
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div
+                        className={`p-2 rounded-full ${
+                          transaction.type === "INCOME"
+                            ? "bg-green-100"
+                            : "bg-red-100"
+                        }`}
+                      >
+                        {transaction.type === "INCOME" ? (
+                          <ArrowUpRight className="h-4 w-4 text-green-600" />
+                        ) : (
+                          <ArrowDownRight className="h-4 w-4 text-red-600" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-medium">{transaction.category}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {transaction.description || "No description"}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p
+                        className={`text-lg font-bold ${
+                          transaction.type === "INCOME"
+                            ? "text-green-600"
+                            : "text-red-600"
+                        }`}
+                      >
+                        {transaction.type === "INCOME" ? "+" : "-"}$
+                        {Math.abs(
+                          parseFloat(transaction.amount || "0"),
+                        ).toFixed(2)}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(transaction.date).toLocaleDateString()}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium">Payment Received</p>
-                    <p className="text-sm text-muted-foreground">
-                      Client A • Main Business Account
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-lg font-bold text-green-600">+$5,000.00</p>
-                  <p className="text-xs text-muted-foreground">Dec 15, 2024</p>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex items-center space-x-4">
-                  <div className="p-2 bg-red-100 rounded-full">
-                    <ArrowDownRight className="h-4 w-4 text-red-600" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Office Rent</p>
-                    <p className="text-sm text-muted-foreground">
-                      Property Management • Main Business Account
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-lg font-bold text-red-600">-$2,500.00</p>
-                  <p className="text-xs text-muted-foreground">Dec 14, 2024</p>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex items-center space-x-4">
-                  <div className="p-2 bg-green-100 rounded-full">
-                    <ArrowUpRight className="h-4 w-4 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Investment Return</p>
-                    <p className="text-sm text-muted-foreground">
-                      Investment Account • Savings Account
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-lg font-bold text-green-600">+$1,200.00</p>
-                  <p className="text-xs text-muted-foreground">Dec 13, 2024</p>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex items-center space-x-4">
-                  <div className="p-2 bg-red-100 rounded-full">
-                    <ArrowDownRight className="h-4 w-4 text-red-600" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Software Subscription</p>
-                    <p className="text-sm text-muted-foreground">
-                      Tech Services • Main Business Account
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-lg font-bold text-red-600">-$299.00</p>
-                  <p className="text-xs text-muted-foreground">Dec 12, 2024</p>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex items-center space-x-4">
-                  <div className="p-2 bg-green-100 rounded-full">
-                    <ArrowUpRight className="h-4 w-4 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Consulting Fee</p>
-                    <p className="text-sm text-muted-foreground">
-                      Client B • Main Business Account
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-lg font-bold text-green-600">+$3,500.00</p>
-                  <p className="text-xs text-muted-foreground">Dec 11, 2024</p>
-                </div>
-              </div>
+                ))
+              ) : (
+                <p className="text-center py-4 text-muted-foreground">
+                  No transactions yet. Create one to get started!
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>

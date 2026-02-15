@@ -20,6 +20,7 @@ export const entities = pgTable("entities", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   type: entityTypeEnum("type").notNull(),
+  address: text("address"),
   ownerId: integer("owner_id").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

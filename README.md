@@ -1,36 +1,101 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Multi-Entity Financial Management Webapp
+
+A comprehensive financial management system built with Next.js, TypeScript, Tailwind CSS, Shadcn/ui, and Drizzle ORM with PostgreSQL.
+
+## Features
+
+- Multi-entity support for managing multiple companies, organizations, or individuals
+- Account management with different account types (assets, liabilities, equity, revenue, expenses)
+- Transaction tracking and management
+- Financial reporting and analytics
+- Modern UI with Tailwind CSS and Shadcn/ui components
+- Type-safe database operations with Drizzle ORM
+
+## Tech Stack
+
+- **Framework**: Next.js 15 with App Router
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **UI Components**: Shadcn/ui
+- **Database**: PostgreSQL with Drizzle ORM
+- **Charts**: Tremor React
+- **Icons**: Lucide React
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+
+- PostgreSQL database
+
+### Installation
+
+1. Install dependencies:
+
+```bash
+npm install --legacy-peer-deps
+```
+
+2. Set up environment variables:
+   Create a `.env.local` file in the root directory:
+
+```env
+POSTGRES_URL="postgresql://username:password@localhost:5432/financial_management"
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="your-secret-key-here"
+```
+
+3. Set up the database:
+
+```bash
+# Generate database migrations
+npm run db:generate
+
+# Run migrations
+npm run db:migrate
+
+# (Optional) Seed the database with sample data
+npm run db:seed
+```
+
+4. Start the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+src/
+├── app/                    # Next.js app router pages
+│   ├── dashboard/         # Dashboard pages
+│   └── globals.css        # Global styles
+├── components/            # Reusable components
+│   ├── layout/           # Layout components
+│   └── ui/               # Shadcn/ui components
+├── lib/                  # Utility functions and configurations
+│   ├── db/              # Database configuration and schema
+│   └── utils.ts         # Utility functions
+└── actions/             # Server actions
+```
 
-## Learn More
+## Database Schema
 
-To learn more about Next.js, take a look at the following resources:
+The application uses three main tables:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **entities**: Stores information about different entities (companies, individuals, organizations)
+- **accounts**: Manages financial accounts for each entity
+- **transactions**: Records all financial transactions
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Available Scripts
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
+- `npm run db:generate` - Generate database migrations
+- `npm run db:migrate` - Run database migrations
+- `npm run db:studio` - Open Drizzle Studio

@@ -8,13 +8,24 @@ if (process.env.NODE_ENV !== "production") {
   config({ path: ".env.local", override: false });
 }
 
-const connectionString = process.env.POSTGRES_URL;
+// Try Supabase URL first, then fallback to POSTGRES_URL
+const connectionString =
+  process.env.POSTGRES_URL ||
+  process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(
+    "https://",
+    "postgresql://postgres:postgres@",
+  ) + "/postgres";
 
 if (!connectionString) {
   throw new Error(
-    'POSTGRES_URL is not set. Create a .env.local with POSTGRES_URL="postgresql://username:password@localhost:5432/financial_management"',
+    "Neither POSTGRES_URL nor NEXT_PUBLIC_SUPABASE_URL is set. Please set one of these environment variables.",
   );
 }
+
+console.log(
+  "Connecting to database with:",
+  connectionString.split("@")[1] || connectionString,
+);
 
 // Disable prefetch as it is not supported for "Transaction" pool mode
 const client = postgres(connectionString, { prepare: false });

@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { createTransaction } from "@/lib/actions/transactions";
+import { getUnits } from "@/lib/actions/units";
 
 interface Entity {
   id: number;
@@ -28,12 +29,46 @@ interface Entity {
   type: string;
 }
 
+interface Unit {
+  id: number;
+  name: string;
+  description?: string | null;
+  entity_id: number;
+}
+
+interface Transaction {
+  id: number;
+  description?: string | null;
+  amount: string;
+  type: "INCOME" | "EXPENSE";
+  category: string;
+  date: string;
+  entity_id: number;
+  unit_id?: number | null;
+  recipient?: string | null;
+}
+
 interface TransactionFormProps {
   children: React.ReactNode;
   entities: Entity[];
+  units?: Unit[];
+  accounts?: Account[];
 }
 
-export function TransactionForm({ children, entities }: TransactionFormProps) {
+interface Account {
+  id: number;
+  name: string;
+  type: string;
+  balance: string;
+  currency: string;
+}
+
+export function TransactionForm({
+  children,
+  entities,
+  units = [],
+  accounts = [],
+}: TransactionFormProps) {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
@@ -43,7 +78,22 @@ export function TransactionForm({ children, entities }: TransactionFormProps) {
     category: "",
     date: new Date().toISOString().split("T")[0],
     entityId: "",
+    unitId: "",
+    recipient: "",
+    accountId: "",
   });
+
+  // Filter units based on selected entity
+  const availableUnits = units.filter(
+    (unit) =>
+      formData.entityId === "" ||
+      unit.entity_id === parseInt(formData.entityId),
+  );
+
+  // Debug: Log the available units and selected entity
+  console.log("Available units:", availableUnits);
+  console.log("Selected entity ID:", formData.entityId);
+  console.log("All units:", units);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,6 +113,15 @@ export function TransactionForm({ children, entities }: TransactionFormProps) {
         category: formData.category,
         date: formData.date,
         entityId: parseInt(formData.entityId),
+        unitId:
+          formData.unitId && formData.unitId !== "none"
+            ? parseInt(formData.unitId)
+            : undefined,
+        recipient: formData.recipient || undefined,
+        accountId:
+          formData.accountId && formData.accountId !== "none"
+            ? parseInt(formData.accountId)
+            : undefined,
       });
 
       if (result.success) {
@@ -74,6 +133,9 @@ export function TransactionForm({ children, entities }: TransactionFormProps) {
           category: "",
           date: new Date().toISOString().split("T")[0],
           entityId: "",
+          unitId: "",
+          recipient: "",
+          accountId: "",
         });
       } else {
         alert(`Error: ${result.error}`);
@@ -129,6 +191,44 @@ export function TransactionForm({ children, entities }: TransactionFormProps) {
               </Select>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="unit" className="text-right">
+                Unit (Optional)
+              </Label>
+              <Select
+                value={formData.unitId}
+                onValueChange={(value: string) =>
+                  handleInputChange("unitId", value)
+                }
+                disabled={!formData.entityId || availableUnits.length === 0}
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue
+                    placeholder={
+                      !formData.entityId
+                        ? "Select entity first"
+                        : availableUnits.length === 0
+                          ? "No units available"
+                          : "Select unit"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No unit</SelectItem>
+                  {availableUnits.map((unit) => (
+                    <SelectItem key={unit.id} value={unit.id.toString()}>
+                      {unit.name}
+                      {unit.description && (
+                        <span className="text-muted-foreground">
+                          {" - "}
+                          {unit.description}
+                        </span>
+                      )}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="description" className="text-right">
                 Description
               </Label>
@@ -142,6 +242,41 @@ export function TransactionForm({ children, entities }: TransactionFormProps) {
                 placeholder="Transaction description"
                 required
               />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="recipient" className="text-right">
+                Recipient
+              </Label>
+              <Input
+                id="recipient"
+                value={formData.recipient}
+                onChange={(e) => handleInputChange("recipient", e.target.value)}
+                className="col-span-3"
+                placeholder="Recipient name (optional)"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="account" className="text-right">
+                Account
+              </Label>
+              <Select
+                value={formData.accountId}
+                onValueChange={(value: string) =>
+                  handleInputChange("accountId", value)
+                }
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select account (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No account</SelectItem>
+                  {accounts.map((account) => (
+                    <SelectItem key={account.id} value={account.id.toString()}>
+                      {account.name} ({account.currency} {account.balance})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="amount" className="text-right">

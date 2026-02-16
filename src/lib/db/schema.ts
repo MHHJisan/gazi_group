@@ -6,6 +6,7 @@ import {
   decimal,
   integer,
   pgEnum,
+  boolean,
 } from "drizzle-orm/pg-core";
 
 // Enums
@@ -52,6 +53,24 @@ export const transactions = pgTable("transactions", {
   category: text("category").notNull(),
   date: timestamp("date").notNull(),
   description: text("description"),
+  recipient: text("recipient"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Accounts Table
+export const accounts = pgTable("accounts", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  type: text("type").notNull(), // CHECKING, SAVINGS, CREDIT, etc.
+  accountNumber: text("account_number"),
+  bankName: text("bank_name"),
+  balance: decimal("balance", { precision: 15, scale: 2 })
+    .notNull()
+    .default("0"),
+  currency: text("currency").notNull().default("USD"),
+  isActive: boolean("is_active").notNull().default(true),
+  description: text("description"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -63,3 +82,5 @@ export type Unit = typeof units.$inferSelect;
 export type NewUnit = typeof units.$inferInsert;
 export type Transaction = typeof transactions.$inferSelect;
 export type NewTransaction = typeof transactions.$inferInsert;
+export type Account = typeof accounts.$inferSelect;
+export type NewAccount = typeof accounts.$inferInsert;

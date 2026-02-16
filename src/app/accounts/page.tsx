@@ -1,10 +1,38 @@
-import { DashboardLayout } from '@/components/layout/dashboard-layout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { CreditCard, Plus, Edit, Eye, TrendingUp, TrendingDown } from 'lucide-react';
+import { DashboardLayout } from "@/components/layout/dashboard-layout";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  CreditCard,
+  Plus,
+  TrendingUp,
+  TrendingDown,
+  Building2,
+} from "lucide-react";
+import { AccountForm } from "@/components/accounts/account-form";
+import { AccountActions } from "@/components/accounts/account-actions";
+import { getAccounts } from "@/lib/actions/accounts";
 
-export default function Accounts() {
+export default async function Accounts() {
+  const accountsResult = await getAccounts();
+  const accounts = accountsResult.success ? accountsResult.data || [] : [];
+
+  // Calculate totals
+  const totalBalance = (accounts || []).reduce(
+    (sum, account) => sum + parseFloat(account.balance || "0"),
+    0,
+  );
+
+  const activeAccounts = (accounts || []).filter(
+    (account) => account.isActive,
+  ).length;
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -15,61 +43,78 @@ export default function Accounts() {
               Manage your financial accounts and balances
             </p>
           </div>
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Account
-          </Button>
+          <AccountForm>
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Account
+            </Button>
+          </AccountForm>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Balance</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Total Balance
+              </CardTitle>
               <CreditCard className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">$125,000.00</div>
+              <div className="text-2xl font-bold">
+                {new Intl.NumberFormat("en-US", {
+                  style: "currency",
+                  currency: "USD",
+                }).format(totalBalance)}
+              </div>
               <p className="text-xs text-muted-foreground">
-                +12.5% from last month
+                Across all accounts
               </p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Accounts</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Active Accounts
+              </CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">12</div>
+              <div className="text-2xl font-bold">{activeAccounts}</div>
               <p className="text-xs text-muted-foreground">
-                +2 new this month
+                {accounts.length - activeAccounts} inactive
               </p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Income This Month</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">
+                Account Types
+              </CardTitle>
+              <Building2 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">$45,231.89</div>
+              <div className="text-2xl font-bold">
+                {new Set(accounts.map((a) => a.type)).size}
+              </div>
               <p className="text-xs text-muted-foreground">
-                +20.1% from last month
+                Different account types
               </p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Expenses This Month</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Total Accounts
+              </CardTitle>
               <TrendingDown className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">$12,234.89</div>
+              <div className="text-2xl font-bold">{accounts.length}</div>
               <p className="text-xs text-muted-foreground">
-                -5.3% from last month
+                All financial accounts
               </p>
             </CardContent>
           </Card>
@@ -85,77 +130,57 @@ export default function Accounts() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center space-x-4">
-                    <CreditCard className="h-8 w-8 text-primary" />
-                    <div>
-                      <p className="font-medium">Main Business Account</p>
-                      <p className="text-sm text-muted-foreground">Checking • 1234</p>
+                {accounts && accounts.length > 0 ? (
+                  accounts.map((account) => (
+                    <div
+                      key={account.id}
+                      className="flex items-center justify-between p-4 border rounded-lg"
+                    >
+                      <div className="flex items-center space-x-4">
+                        <CreditCard className="h-8 w-8 text-primary" />
+                        <div>
+                          <p className="font-medium">{account.name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {account.type}{" "}
+                            {account.bank_name && `• ${account.bank_name}`}
+                            {account.account_number &&
+                              `• ${account.account_number}`}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-lg font-bold">
+                          {new Intl.NumberFormat("en-US", {
+                            style: "currency",
+                            currency: account.currency,
+                          }).format(parseFloat(account.balance || "0"))}
+                        </p>
+                        <Badge
+                          variant={account.is_active ? "default" : "secondary"}
+                        >
+                          {account.is_active ? "Active" : "Inactive"}
+                        </Badge>
+                      </div>
+                      <div className="flex gap-2">
+                        <AccountActions
+                          account={{
+                            ...account,
+                            created_at:
+                              account.created_at || new Date().toISOString(),
+                            updated_at:
+                              account.updated_at || new Date().toISOString(),
+                          }}
+                        />
+                      </div>
                     </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">
+                      No accounts found. Create one to get started!
+                    </p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-lg font-bold">$75,000.00</p>
-                    <Badge variant="secondary">Active</Badge>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="outline">
-                      <Eye className="mr-1 h-3 w-3" />
-                      View
-                    </Button>
-                    <Button size="sm" variant="outline">
-                      <Edit className="mr-1 h-3 w-3" />
-                      Edit
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center space-x-4">
-                    <CreditCard className="h-8 w-8 text-primary" />
-                    <div>
-                      <p className="font-medium">Savings Account</p>
-                      <p className="text-sm text-muted-foreground">Savings • 5678</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-lg font-bold">$35,000.00</p>
-                    <Badge variant="secondary">Active</Badge>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="outline">
-                      <Eye className="mr-1 h-3 w-3" />
-                      View
-                    </Button>
-                    <Button size="sm" variant="outline">
-                      <Edit className="mr-1 h-3 w-3" />
-                      Edit
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center space-x-4">
-                    <CreditCard className="h-8 w-8 text-primary" />
-                    <div>
-                      <p className="font-medium">Emergency Fund</p>
-                      <p className="text-sm text-muted-foreground">Savings • 9012</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-lg font-bold">$15,000.00</p>
-                    <Badge variant="secondary">Active</Badge>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="outline">
-                      <Eye className="mr-1 h-3 w-3" />
-                      View
-                    </Button>
-                    <Button size="sm" variant="outline">
-                      <Edit className="mr-1 h-3 w-3" />
-                      Edit
-                    </Button>
-                  </div>
-                </div>
+                )}
               </div>
             </CardContent>
           </Card>

@@ -30,11 +30,13 @@ export type Transaction = {
   id: number;
   entity_id: number;
   unit_id?: number | null;
+  account_id?: number | null;
   amount: string;
   type: "INCOME" | "EXPENSE";
   category: string;
   date: string;
   description?: string | null;
+  recipient?: string | null;
   created_at: string;
   updated_at: string;
 };

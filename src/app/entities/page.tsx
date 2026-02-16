@@ -7,14 +7,37 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Building2 } from "lucide-react";
+import { Building2, MapPin, Layers } from "lucide-react";
 import { EntityForm } from "@/components/entities/entity-form";
 import { EntityActions } from "@/components/entities/entity-actions";
+import { AccountForm } from "@/components/accounts/account-form";
+import { AccountActions } from "@/components/accounts/account-actions";
+import { getAccounts } from "@/lib/actions/accounts";
+import { formatDate } from "@/lib/utils/date";
+import { UnitForm } from "@/components/units/unit-form";
+import { UnitActions } from "@/components/units/unit-actions";
 import { getEntities } from "@/lib/actions/entities";
+import { getUnits } from "@/lib/actions/units";
 
 export default async function Entities() {
-  const result = await getEntities(1);
-  const entities = result.success ? result.data : [];
+  const entitiesResult = await getEntities(1);
+  const entities = entitiesResult.success ? entitiesResult.data : [];
+
+  // Get units for all entities
+  const unitsResult = await getUnits();
+  const allUnits = unitsResult.success ? unitsResult.data : [];
+
+  // Group units by entity
+  const unitsByEntity = (allUnits || []).reduce(
+    (acc, unit) => {
+      if (!acc[unit.entity_id]) {
+        acc[unit.entity_id] = [];
+      }
+      acc[unit.entity_id].push(unit);
+      return acc;
+    },
+    {} as Record<number, typeof allUnits>,
+  );
 
   return (
     <DashboardLayout>
@@ -26,7 +49,10 @@ export default async function Entities() {
               Manage your business entities and organizations
             </p>
           </div>
-          <EntityForm />
+          <div className="flex gap-2">
+            <EntityForm />
+            <UnitForm entities={entities} />
+          </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -46,13 +72,53 @@ export default async function Entities() {
                     <div>
                       <strong>Type:</strong> {entity.type}
                     </div>
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <strong>Address:</strong>{" "}
+                        {entity.address || "No address provided"}
+                      </div>
+                    </div>
                     <div>
                       <strong>Owner ID:</strong> {entity.owner_id}
                     </div>
                     <div>
-                      <strong>Created:</strong>{" "}
-                      {new Date(entity.created_at).toLocaleDateString()}
+                      <strong>Created:</strong> {formatDate(entity.created_at)}
                     </div>
+                    <div className="flex items-center gap-2">
+                      <Layers className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <strong>Units:</strong>{" "}
+                        {unitsByEntity[entity.id]?.length || 0} unit(s)
+                      </div>
+                    </div>
+                    {unitsByEntity[entity.id] &&
+                      unitsByEntity[entity.id].length > 0 && (
+                        <div className="mt-2">
+                          <strong>Unit List:</strong>
+                          <div className="ml-2 mt-1 space-y-1">
+                            {unitsByEntity[entity.id].map((unit) => (
+                              <div
+                                key={unit.id}
+                                className="flex items-center justify-between text-xs bg-muted px-2 py-1 rounded"
+                              >
+                                <div>
+                                  {unit.name}
+                                  {unit.description && (
+                                    <span className="text-muted-foreground">
+                                      {" - "}
+                                      {unit.description}
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="flex gap-1">
+                                  <UnitActions unit={unit} />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                   </div>
                   <div className="flex gap-2 mt-4">
                     <EntityActions
@@ -60,6 +126,7 @@ export default async function Entities() {
                         id: entity.id,
                         name: entity.name,
                         type: entity.type as "BUSINESS" | "PROPERTY",
+                        address: entity.address,
                       }}
                     />
                   </div>

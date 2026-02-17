@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { login, signup } from "@/lib/auth-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -13,46 +12,78 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { AlertCircle, CheckCircle } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const error = searchParams.get("error");
-  const message = searchParams.get("message");
+
+  // Show error from URL if present
+  useEffect(() => {
+    const error = searchParams.get("error");
+    if (error) {
+      setErrorMessage(error);
+    }
+  }, [searchParams]);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setErrorMessage(null);
+
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+
+    try {
+      const response = await fetch("/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+        credentials: "include", // Important for cookies
+      });
+
+      if (response.ok) {
+        // Login successful, redirect to dashboard
+        window.location.href = "/dashboard";
+      } else {
+        const data = await response.json();
+        setErrorMessage(data.error || "Login failed");
+      }
+    } catch (error) {
+      setErrorMessage("Network error. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4">
       <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
+        <CardHeader>
           <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
-          <CardDescription>
-            Enter your credentials to sign in to your account
-          </CardDescription>
+          <CardDescription>Enter credentials to sign in</CardDescription>
         </CardHeader>
         <CardContent>
-          {error && (
+          {/* Error Alert */}
+          {errorMessage && (
             <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-md text-red-800 mb-4">
               <AlertCircle className="h-4 w-4" />
-              {error}
+              {errorMessage}
             </div>
           )}
 
-          {message && (
-            <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-md text-green-800 mb-4">
-              <CheckCircle className="h-4 w-4" />
-              {message}
-            </div>
-          )}
-
-          <form action={login} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 name="email"
                 type="email"
-                placeholder="john@example.com"
                 required
                 disabled={isLoading}
               />
@@ -67,30 +98,9 @@ export default function LoginPage() {
                 disabled={isLoading}
               />
             </div>
+
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? "Signing in..." : "Sign In"}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              disabled={isLoading}
-              onClick={(e) => {
-                e.preventDefault();
-                const form = e.currentTarget.closest("form");
-                if (form) {
-                  const formData = new FormData(form);
-                  const email = formData.get("email") as string;
-                  const password = formData.get("password") as string;
-
-                  if (email && password) {
-                    setIsLoading(true);
-                    signup(formData).finally(() => setIsLoading(false));
-                  }
-                }
-              }}
-            >
-              {isLoading ? "Creating account..." : "Create Account"}
             </Button>
           </form>
         </CardContent>

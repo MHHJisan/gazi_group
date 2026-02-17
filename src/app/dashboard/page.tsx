@@ -1,7 +1,3 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import {
   Card,
@@ -11,39 +7,20 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { BarChart3, Wallet, TrendingUp, CreditCard } from "lucide-react";
-import { supabase } from "@/lib/supabase-client";
+import { createClient } from "@/utils/supabase/server";
+import { redirect } from "next/navigation";
 
-export default function Dashboard() {
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
+export const dynamic = "force-dynamic";
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
+export default async function Dashboard() {
+  const supabase = await createClient();
 
-        if (!user) {
-          router.push("/login");
-        }
-      } catch (error) {
-        console.error("Auth check failed:", error);
-        router.push("/login");
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-    checkAuth();
-  }, [router]);
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Loading...</div>
-      </div>
-    );
+  if (!user) {
+    redirect("/login");
   }
 
   return (

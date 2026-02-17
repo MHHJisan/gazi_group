@@ -61,13 +61,22 @@ export default function Users() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
+        // Try getSession first, then fallback to getUser
+        const { data: session } = await supabase.auth.getSession();
 
-        if (!user) {
-          router.push("/login");
+        if (!session?.session?.user) {
+          // If no session, try getUser
+          const {
+            data: { user },
+          } = await supabase.auth.getUser();
+          if (!user) {
+            console.log("No authenticated user found, redirecting to login");
+            router.push("/login");
+            return;
+          }
         }
+
+        console.log("User authenticated successfully");
       } catch (error) {
         console.error("Auth check failed:", error);
         router.push("/login");

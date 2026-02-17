@@ -1,3 +1,5 @@
+"use client";
+
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import {
   Card,
@@ -31,77 +33,124 @@ import {
   Calendar,
   MoreHorizontal,
 } from "lucide-react";
-
-// Mock user data - in a real app, this would come from a database
-const mockUsers = [
-  {
-    id: 1,
-    name: "John Doe",
-    email: "john.doe@example.com",
-    role: "admin",
-    status: "active",
-    createdAt: "2024-01-15",
-    lastLogin: "2024-02-16",
-    phone: "+1-555-0123",
-    department: "Management",
-  },
-  {
-    id: 2,
-    name: "Alice Smith",
-    email: "alice.smith@example.com",
-    role: "manager",
-    status: "active",
-    createdAt: "2024-01-20",
-    lastLogin: "2024-02-15",
-    phone: "+1-555-0124",
-    department: "Sales",
-  },
-  {
-    id: 3,
-    name: "Bob Johnson",
-    email: "bob.johnson@example.com",
-    role: "user",
-    status: "active",
-    createdAt: "2024-02-01",
-    lastLogin: "2024-02-14",
-    phone: "+1-555-0125",
-    department: "Engineering",
-  },
-  {
-    id: 4,
-    name: "Emma Wilson",
-    email: "emma.wilson@example.com",
-    role: "user",
-    status: "inactive",
-    createdAt: "2024-02-05",
-    lastLogin: "2024-02-01",
-    phone: "+1-555-0126",
-    department: "Marketing",
-  },
-  {
-    id: 5,
-    name: "Michael Brown",
-    email: "michael.brown@example.com",
-    role: "user",
-    status: "active",
-    createdAt: "2024-02-10",
-    lastLogin: "2024-02-16",
-    phone: "+1-555-0127",
-    department: "Finance",
-  },
-];
+import { getUsers } from "@/lib/actions/users";
+import type { User } from "@/lib/actions/users";
+import { UserForm } from "@/components/users/user-form";
+import { EditUserForm } from "@/components/users/edit-user-form";
+import { DeleteUser } from "@/components/users/delete-user";
+import { UserActionsMenu } from "@/components/users/user-actions-menu";
+import { ChangePasswordForm } from "@/components/users/change-password-form";
+import { ForgotPasswordForm } from "@/components/users/forgot-password-form";
+import { useState, useEffect } from "react";
 
 export default function Users() {
-  const totalUsers = mockUsers.length;
-  const activeUsers = mockUsers.filter(
-    (user) => user.status === "active",
+  const [users, setUsers] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [changePasswordUserId, setChangePasswordUserId] = useState<
+    string | null
+  >(null);
+  const [changePasswordUserName, setChangePasswordUserName] =
+    useState<string>("");
+  const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
+
+  // Fetch users on component mount
+  useEffect(() => {
+    const fetchUsers = async () => {
+      setIsLoading(true);
+      const usersResult = await getUsers();
+      if (usersResult.success) {
+        setUsers(usersResult.data || []);
+      } else {
+        console.error("Failed to fetch users:", usersResult.error);
+      }
+      setIsLoading(false);
+    };
+
+    fetchUsers();
+  }, []);
+
+  const totalUsers = users.length;
+  const activeUsers = users.filter((user) => user.status === "active").length;
+  const adminUsers = users.filter((user) => user.role === "admin").length;
+  const managerUsers = users.filter((user) => user.role === "manager").length;
+  const regularUsers = users.filter((user) => user.role === "user").length;
+
+  // Calculate new users this month
+  const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM format
+  const newUsersThisMonth = users.filter(
+    (user) => user.created_at && user.created_at.startsWith(currentMonth),
   ).length;
-  const adminUsers = mockUsers.filter((user) => user.role === "admin").length;
-  const managerUsers = mockUsers.filter(
-    (user) => user.role === "manager",
-  ).length;
-  const regularUsers = mockUsers.filter((user) => user.role === "user").length;
-  const newUsersThisMonth = 2; // Mock data
+
+  const handleUserUpdated = () => {
+    console.log("User updated - refreshing user list");
+    // Refetch users when a user is updated
+    const fetchUsers = async () => {
+      const usersResult = await getUsers();
+      if (usersResult.success) {
+        setUsers(usersResult.data || []);
+      }
+    };
+    fetchUsers();
+  };
+
+  const handleUserCreated = () => {
+    console.log("User created - refreshing user list");
+    // Refetch users when a new user is created
+    const fetchUsers = async () => {
+      const usersResult = await getUsers();
+      if (usersResult.success) {
+        setUsers(usersResult.data || []);
+      }
+    };
+    fetchUsers();
+  };
+
+  const handlePasswordChanged = () => {
+    console.log("Password changed - refreshing user list");
+    // Refetch users when password is changed
+    const fetchUsers = async () => {
+      const usersResult = await getUsers();
+      if (usersResult.success) {
+        setUsers(usersResult.data || []);
+      }
+    };
+    fetchUsers();
+    setChangePasswordUserId(null);
+    setChangePasswordUserName("");
+  };
+
+  const handlePasswordReset = () => {
+    console.log("Password reset - refreshing user list");
+    // Refetch users when password is reset
+    const fetchUsers = async () => {
+      const usersResult = await getUsers();
+      if (usersResult.success) {
+        setUsers(usersResult.data || []);
+      }
+    };
+    fetchUsers();
+    setForgotPasswordOpen(false);
+  };
+
+  const openChangePasswordModal = (userId: string, userName: string) => {
+    setChangePasswordUserId(userId);
+    setChangePasswordUserName(userName);
+  };
+
+  const handleUserDeleted = () => {
+    console.log("Delete user clicked - refreshing user list");
+    // Refetch users when a user is deleted
+    const fetchUsers = async () => {
+      console.log("Fetching users after delete...");
+      const usersResult = await getUsers();
+      if (usersResult.success) {
+        setUsers(usersResult.data || []);
+      } else {
+        console.error("Failed to fetch users:", usersResult.error);
+      }
+    };
+    fetchUsers();
+  };
 
   const getRoleColor = (role: string) => {
     switch (role) {
@@ -139,10 +188,7 @@ export default function Users() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Add User
-            </Button>
+            <UserForm onUserCreated={handleUserCreated} />
             <Button variant="outline">
               <Filter className="mr-2 h-4 w-4" />
               Export
@@ -177,7 +223,10 @@ export default function Users() {
                 {activeUsers}
               </div>
               <p className="text-xs text-muted-foreground">
-                {((activeUsers / totalUsers) * 100).toFixed(1)}% active rate
+                {totalUsers > 0
+                  ? ((activeUsers / totalUsers) * 100).toFixed(1)
+                  : 0}
+                % active rate
               </p>
             </CardContent>
           </Card>
@@ -192,7 +241,10 @@ export default function Users() {
                 {adminUsers}
               </div>
               <p className="text-xs text-muted-foreground">
-                {((adminUsers / totalUsers) * 100).toFixed(1)}% of total users
+                {totalUsers > 0
+                  ? ((adminUsers / totalUsers) * 100).toFixed(1)
+                  : 0}
+                % of total users
               </p>
             </CardContent>
           </Card>
@@ -272,75 +324,108 @@ export default function Users() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {mockUsers.map((user) => (
-                <div
-                  key={user.id}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
-                >
-                  <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-white font-bold">
-                      {getInitials(user.name)}
-                    </div>
-
-                    <div>
-                      <p className="font-medium">{user.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {user.email}
-                      </p>
-
-                      <div className="flex items-center gap-4 mt-1">
-                        <Badge className={getRoleColor(user.role)}>
-                          {user.role.charAt(0).toUpperCase() +
-                            user.role.slice(1)}
-                        </Badge>
-                        <Badge variant={getStatusColor(user.status)}>
-                          {user.status}
-                        </Badge>
-                      </div>
-
-                      <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <Phone className="h-3 w-3" />
-                          {user.phone}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Mail className="h-3 w-3" />
-                          {user.department}
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          Joined {new Date(user.createdAt).toLocaleDateString()}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <UserCheck className="h-3 w-3" />
-                          Last login{" "}
-                          {new Date(user.lastLogin).toLocaleDateString()}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Button size="sm" variant="outline">
-                      <Edit className="mr-1 h-3 w-3" />
-                      Edit
-                    </Button>
-                    <Button size="sm" variant="destructive">
-                      <Trash2 className="mr-1 h-3 w-3" />
-                      Delete
-                    </Button>
-                    <Button size="sm" variant="ghost">
-                      <MoreHorizontal className="h-3 w-3" />
-                    </Button>
-                  </div>
+              {users.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <UsersIcon className="mx-auto h-12 w-12 mb-4 opacity-50" />
+                  <p>No users found</p>
+                  <p className="text-sm">
+                    Get started by adding your first user account
+                  </p>
                 </div>
-              ))}
+              ) : (
+                users.map((user) => (
+                  <div
+                    key={user.id}
+                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-white font-bold">
+                        {getInitials(user.name)}
+                      </div>
+
+                      <div>
+                        <p className="font-medium">{user.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {user.email}
+                        </p>
+
+                        <div className="flex items-center gap-4 mt-1">
+                          <Badge className={getRoleColor(user.role)}>
+                            {user.role.charAt(0).toUpperCase() +
+                              user.role.slice(1)}
+                          </Badge>
+                          <Badge variant={getStatusColor(user.status)}>
+                            {user.status}
+                          </Badge>
+                        </div>
+
+                        <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-1">
+                            <Phone className="h-3 w-3" />
+                            {user.phone || "N/A"}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Mail className="h-3 w-3" />
+                            {user.department || "N/A"}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            Joined{" "}
+                            {user.created_at
+                              ? new Date(user.created_at).toLocaleDateString()
+                              : "N/A"}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <UserCheck className="h-3 w-3" />
+                            Last login{" "}
+                            {user.last_login
+                              ? new Date(user.last_login).toLocaleDateString()
+                              : "Never"}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <EditUserForm
+                        userId={user.id}
+                        onUserUpdated={handleUserUpdated}
+                      />
+                      <DeleteUser
+                        userId={user.id}
+                        userName={user.name}
+                        onUserDeleted={handleUserDeleted}
+                      />
+                      <UserActionsMenu
+                        userId={user.id}
+                        userName={user.name}
+                        onPasswordChanged={handlePasswordChanged}
+                        onPasswordReset={handlePasswordReset}
+                      />
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </CardContent>
         </Card>
+
+        {/* Change Password Modal */}
+        {changePasswordUserId && (
+          <ChangePasswordForm
+            userId={changePasswordUserId}
+            userName={changePasswordUserName}
+            onPasswordChanged={handlePasswordChanged}
+          />
+        )}
+
+        {/* Forgot Password Modal */}
+        {forgotPasswordOpen && (
+          <ForgotPasswordForm onPasswordReset={handlePasswordReset} />
+        )}
       </div>
     </DashboardLayout>
   );

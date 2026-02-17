@@ -1,8 +1,4 @@
 import { createClient } from "@supabase/supabase-js";
-import { config } from "dotenv";
-
-// Load environment variables
-config({ path: ".env.local", override: false });
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;

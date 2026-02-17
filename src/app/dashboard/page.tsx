@@ -1,8 +1,51 @@
-import { DashboardLayout } from '@/components/layout/dashboard-layout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart3, Wallet, TrendingUp, CreditCard } from 'lucide-react';
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { DashboardLayout } from "@/components/layout/dashboard-layout";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { BarChart3, Wallet, TrendingUp, CreditCard } from "lucide-react";
+import { supabase } from "@/lib/supabase-client";
 
 export default function Dashboard() {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (!user) {
+          router.push("/login");
+        }
+      } catch (error) {
+        console.error("Auth check failed:", error);
+        router.push("/login");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, [router]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg">Loading...</div>
+      </div>
+    );
+  }
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -16,7 +59,9 @@ export default function Dashboard() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Balance</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Total Balance
+              </CardTitle>
               <Wallet className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -26,7 +71,7 @@ export default function Dashboard() {
               </p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Revenue</CardTitle>
@@ -39,7 +84,7 @@ export default function Dashboard() {
               </p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Expenses</CardTitle>
@@ -52,17 +97,17 @@ export default function Dashboard() {
               </p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Accounts</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Active Accounts
+              </CardTitle>
               <BarChart3 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">24</div>
-              <p className="text-xs text-muted-foreground">
-                +2 new this month
-              </p>
+              <p className="text-xs text-muted-foreground">+2 new this month</p>
             </CardContent>
           </Card>
         </div>
@@ -71,9 +116,7 @@ export default function Dashboard() {
           <Card className="col-span-4">
             <CardHeader>
               <CardTitle>Financial Overview</CardTitle>
-              <CardDescription>
-                Monthly financial performance
-              </CardDescription>
+              <CardDescription>Monthly financial performance</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="h-[300px] flex items-center justify-center text-muted-foreground">
@@ -81,13 +124,11 @@ export default function Dashboard() {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card className="col-span-3">
             <CardHeader>
               <CardTitle>Recent Transactions</CardTitle>
-              <CardDescription>
-                Latest financial activities
-              </CardDescription>
+              <CardDescription>Latest financial activities</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -96,9 +137,7 @@ export default function Dashboard() {
                     <p className="text-sm font-medium leading-none">
                       Payment received
                     </p>
-                    <p className="text-sm text-muted-foreground">
-                      Client A
-                    </p>
+                    <p className="text-sm text-muted-foreground">Client A</p>
                   </div>
                   <div className="ml-auto font-medium">+$5,000</div>
                 </div>
@@ -111,7 +150,9 @@ export default function Dashboard() {
                       Monthly expense
                     </p>
                   </div>
-                  <div className="ml-auto font-medium text-red-600">-$2,500</div>
+                  <div className="ml-auto font-medium text-red-600">
+                    -$2,500
+                  </div>
                 </div>
               </div>
             </CardContent>

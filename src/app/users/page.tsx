@@ -1,6 +1,9 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
+import { supabase } from "@/lib/supabase-client";
 import {
   Card,
   CardContent,
@@ -41,9 +44,10 @@ import { DeleteUser } from "@/components/users/delete-user";
 import { UserActionsMenu } from "@/components/users/user-actions-menu";
 import { ChangePasswordModal } from "@/components/users/change-password-modal";
 import { ForgotPasswordModal } from "@/components/users/forgot-password-modal";
-import { useState, useEffect } from "react";
 
 export default function Users() {
+  const router = useRouter();
+  const [authLoading, setAuthLoading] = useState(true);
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [changePasswordUserId, setChangePasswordUserId] = useState<
@@ -53,8 +57,32 @@ export default function Users() {
     useState<string>("");
   const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
 
+  // Check authentication on component mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (!user) {
+          router.push("/login");
+        }
+      } catch (error) {
+        console.error("Auth check failed:", error);
+        router.push("/login");
+      } finally {
+        setAuthLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, [router]);
+
   // Fetch users on component mount
   useEffect(() => {
+    if (authLoading) return; // Don't fetch users while checking auth
+
     const fetchUsers = async () => {
       setIsLoading(true);
       const usersResult = await getUsers();
@@ -67,7 +95,15 @@ export default function Users() {
     };
 
     fetchUsers();
-  }, []);
+  }, [authLoading]);
+
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg">Loading...</div>
+      </div>
+    );
+  }
 
   const totalUsers = users.length;
   const activeUsers = users.filter((user) => user.status === "active").length;

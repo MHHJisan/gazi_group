@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Key } from "lucide-react";
-import { updateUser } from "@/lib/actions/users";
+import { changePassword } from "@/lib/auth-actions";
 
 interface ChangePasswordModalProps {
   isOpen: boolean;
@@ -49,9 +49,11 @@ export function ChangePasswordModal({
     setError(null);
 
     try {
-      const result = await updateUser(userId, {
-        password: formData.newPassword,
-      });
+      const submitData = new FormData();
+      submitData.append("currentPassword", formData.currentPassword);
+      submitData.append("newPassword", formData.newPassword);
+
+      const result = await changePassword(submitData);
 
       if (result.success) {
         // Reset form
@@ -61,7 +63,7 @@ export function ChangePasswordModal({
           confirmPassword: "",
         });
         onClose();
-        
+
         // Notify parent component
         if (onSuccess) {
           onSuccess();
@@ -110,7 +112,9 @@ export function ChangePasswordModal({
                 id="currentPassword"
                 type="password"
                 value={formData.currentPassword}
-                onChange={(e) => handleInputChange("currentPassword", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("currentPassword", e.target.value)
+                }
                 className="col-span-3"
                 placeholder="Enter current password"
               />
@@ -123,7 +127,9 @@ export function ChangePasswordModal({
                 id="newPassword"
                 type="password"
                 value={formData.newPassword}
-                onChange={(e) => handleInputChange("newPassword", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("newPassword", e.target.value)
+                }
                 className="col-span-3"
                 placeholder="Enter new password"
                 required
@@ -137,7 +143,9 @@ export function ChangePasswordModal({
                 id="confirmPassword"
                 type="password"
                 value={formData.confirmPassword}
-                onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("confirmPassword", e.target.value)
+                }
                 className="col-span-3"
                 placeholder="Confirm new password"
                 required

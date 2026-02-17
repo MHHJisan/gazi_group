@@ -60,20 +60,24 @@ export async function createUser(userData: Omit<User, "id" | "created_at">) {
   }
 }
 
-export async function updateUser(id: string, userData: Partial<User>) {
+export async function updateUser(id: string, data: Partial<User>) {
   try {
-    const { data, error } = await supabase
+    // Remove password from data since it's handled by Supabase Auth
+    const { password, ...userData } = data;
+
+    const { error } = await supabase
       .from("users")
       .update(userData)
       .eq("id", id)
-      .select();
+      .select()
+      .single();
 
     if (error) {
       console.error("Error updating user:", error);
       return { success: false, error: error.message };
     }
 
-    return { success: true, data };
+    return { success: true, data: error ? null : userData };
   } catch (error) {
     console.error("Unexpected error:", error);
     return { success: false, error: "Failed to update user" };

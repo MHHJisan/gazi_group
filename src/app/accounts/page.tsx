@@ -20,8 +20,18 @@ import { AccountForm } from "@/components/accounts/account-form";
 import { AccountActions } from "@/components/accounts/account-actions";
 import { TransferForm } from "@/components/accounts/transfer-form";
 import { getAccounts } from "@/lib/actions/accounts";
+import { createClient } from "@/utils/supabase/server";
+import { redirect } from "next/navigation";
 
 export default async function Accounts() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    redirect("/login");
+  }
+
   const accountsResult = await getAccounts();
   const accounts = accountsResult.success ? accountsResult.data || [] : [];
 

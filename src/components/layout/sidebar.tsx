@@ -29,12 +29,15 @@ const navigation = [
 export function Sidebar() {
   const pathname = usePathname();
 
-  const handleLogout = () => {
-    // Clear any authentication tokens/user data
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch {}
     localStorage.removeItem("authToken");
     localStorage.removeItem("user");
-
-    // Redirect to login page (you might need to adjust this path)
     window.location.href = "/login";
   };
 

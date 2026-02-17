@@ -8,8 +8,18 @@ import { getTransactions } from "@/lib/actions/transactions";
 import { getUnits } from "@/lib/actions/units";
 import { getAccounts } from "@/lib/actions/accounts";
 import { Transaction } from "@/lib/supabase-client";
+import { createClient } from "@/utils/supabase/server";
+import { redirect } from "next/navigation";
 
 export default async function Transactions() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    redirect("/login");
+  }
+
   const entitiesResult = await getEntities();
   const transactionsResult = await getTransactions();
   const unitsResult = await getUnits();

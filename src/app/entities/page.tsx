@@ -20,8 +20,18 @@ import { UnitActions } from "@/components/units/unit-actions";
 import { EntityUnitForm } from "@/components/units/entity-unit-form";
 import { getEntities } from "@/lib/actions/entities";
 import { getUnits } from "@/lib/actions/units";
+import { createClient } from "@/utils/supabase/server";
+import { redirect } from "next/navigation";
 
 export default async function Entities() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    redirect("/login");
+  }
+
   const entitiesResult = await getEntities(1);
   const entities = entitiesResult.success ? entitiesResult.data || [] : [];
 

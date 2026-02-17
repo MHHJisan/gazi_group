@@ -39,8 +39,8 @@ import { UserForm } from "@/components/users/user-form";
 import { EditUserForm } from "@/components/users/edit-user-form";
 import { DeleteUser } from "@/components/users/delete-user";
 import { UserActionsMenu } from "@/components/users/user-actions-menu";
-import { ChangePasswordForm } from "@/components/users/change-password-form";
-import { ForgotPasswordForm } from "@/components/users/forgot-password-form";
+import { ChangePasswordModal } from "@/components/users/change-password-modal";
+import { ForgotPasswordModal } from "@/components/users/forgot-password-modal";
 import { useState, useEffect } from "react";
 
 export default function Users() {
@@ -103,38 +103,6 @@ export default function Users() {
       }
     };
     fetchUsers();
-  };
-
-  const handlePasswordChanged = () => {
-    console.log("Password changed - refreshing user list");
-    // Refetch users when password is changed
-    const fetchUsers = async () => {
-      const usersResult = await getUsers();
-      if (usersResult.success) {
-        setUsers(usersResult.data || []);
-      }
-    };
-    fetchUsers();
-    setChangePasswordUserId(null);
-    setChangePasswordUserName("");
-  };
-
-  const handlePasswordReset = () => {
-    console.log("Password reset - refreshing user list");
-    // Refetch users when password is reset
-    const fetchUsers = async () => {
-      const usersResult = await getUsers();
-      if (usersResult.success) {
-        setUsers(usersResult.data || []);
-      }
-    };
-    fetchUsers();
-    setForgotPasswordOpen(false);
-  };
-
-  const openChangePasswordModal = (userId: string, userName: string) => {
-    setChangePasswordUserId(userId);
-    setChangePasswordUserName(userName);
   };
 
   const handleUserDeleted = () => {
@@ -402,8 +370,18 @@ export default function Users() {
                       <UserActionsMenu
                         userId={user.id}
                         userName={user.name}
-                        onPasswordChanged={handlePasswordChanged}
-                        onPasswordReset={handlePasswordReset}
+                        onPasswordChanged={() => {
+                          console.log(
+                            "Opening change password modal for:",
+                            user.name,
+                          );
+                          setChangePasswordUserId(user.id);
+                          setChangePasswordUserName(user.name);
+                        }}
+                        onPasswordReset={() => {
+                          console.log("Opening forgot password modal");
+                          setForgotPasswordOpen(true);
+                        }}
                       />
                     </div>
                   </div>
@@ -414,18 +392,50 @@ export default function Users() {
         </Card>
 
         {/* Change Password Modal */}
-        {changePasswordUserId && (
-          <ChangePasswordForm
-            userId={changePasswordUserId}
-            userName={changePasswordUserName}
-            onPasswordChanged={handlePasswordChanged}
-          />
-        )}
+        <ChangePasswordModal
+          isOpen={!!changePasswordUserId}
+          onClose={() => {
+            setChangePasswordUserId(null);
+            setChangePasswordUserName("");
+          }}
+          userId={changePasswordUserId || ""}
+          userName={changePasswordUserName}
+          onSuccess={() => {
+            console.log(
+              "Password actually changed - closing modal and refreshing",
+            );
+            setChangePasswordUserId(null);
+            setChangePasswordUserName("");
+            // Refresh user list after password change
+            const fetchUsers = async () => {
+              const usersResult = await getUsers();
+              if (usersResult.success) {
+                setUsers(usersResult.data || []);
+              }
+            };
+            fetchUsers();
+          }}
+        />
 
         {/* Forgot Password Modal */}
-        {forgotPasswordOpen && (
-          <ForgotPasswordForm onPasswordReset={handlePasswordReset} />
-        )}
+        <ForgotPasswordModal
+          isOpen={forgotPasswordOpen}
+          onClose={() => setForgotPasswordOpen(false)}
+          onSuccess={() => {
+            console.log(
+              "Password reset completed - closing modal and refreshing",
+            );
+            setForgotPasswordOpen(false);
+            // Refresh user list after password reset
+            const fetchUsers = async () => {
+              const usersResult = await getUsers();
+              if (usersResult.success) {
+                setUsers(usersResult.data || []);
+              }
+            };
+            fetchUsers();
+          }}
+        />
       </div>
     </DashboardLayout>
   );

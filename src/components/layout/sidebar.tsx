@@ -12,6 +12,7 @@ import {
   TrendingUp,
   CreditCard,
   Building2,
+  LogOut,
 } from "lucide-react";
 
 const navigation = [
@@ -27,6 +28,15 @@ const navigation = [
 
 export function Sidebar() {
   const pathname = usePathname();
+
+  const handleLogout = () => {
+    // Clear any authentication tokens/user data
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("user");
+
+    // Redirect to login page (you might need to adjust this path)
+    window.location.href = "/login";
+  };
 
   return (
     <div className="flex h-full w-64 flex-col bg-gray-50 border-r">
@@ -53,6 +63,17 @@ export function Sidebar() {
           );
         })}
       </nav>
+
+      {/* Logout Button at Bottom */}
+      <div className="space-y-1 px-3 py-4 border-t">
+        <button
+          onClick={handleLogout}
+          className="flex w-full items-center rounded-lg px-3 py-2 text-sm font-medium transition-colors text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+        >
+          <LogOut className="mr-3 h-5 w-5" />
+          Logout
+        </button>
+      </div>
     </div>
   );
 }

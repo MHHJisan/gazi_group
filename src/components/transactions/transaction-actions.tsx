@@ -192,19 +192,11 @@ export function TransactionActions({
 
   return (
     <>
-      <Button
-        size="sm"
-        variant="ghost"
-        onClick={() => setViewOpen(true)}
-        className="h-6 w-6 p-0"
-      >
-        <Eye className="h-3 w-3" />
-      </Button>
-
       <Dialog open={viewOpen} onOpenChange={setViewOpen}>
         <DialogTrigger asChild>
-          <Button size="sm" variant="ghost" className="h-6 w-6 p-0">
-            <Eye className="h-3 w-3" />
+          <Button size="sm" variant="ghost" className="h-8 px-2">
+            <Eye className="h-3 w-3 mr-1" />
+            View
           </Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[500px]">
@@ -303,9 +295,10 @@ export function TransactionActions({
             size="sm"
             variant="ghost"
             onClick={handleEditDialogOpen}
-            className="h-6 w-6 p-0"
+            className="h-8 px-2"
           >
-            <Edit className="h-3 w-3" />
+            <Edit className="h-3 w-3 mr-1" />
+            Edit
           </Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[500px]">
@@ -476,9 +469,10 @@ export function TransactionActions({
           <Button
             size="sm"
             variant="ghost"
-            className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
+            className="h-8 px-2 text-red-600 hover:text-red-700"
           >
-            <Trash2 className="h-3 w-3" />
+            <Trash2 className="h-3 w-3 mr-1" />
+            Delete
           </Button>
         </AlertDialogTrigger>
         <AlertDialogContent>

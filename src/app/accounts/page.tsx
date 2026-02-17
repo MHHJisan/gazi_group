@@ -14,9 +14,11 @@ import {
   TrendingUp,
   TrendingDown,
   Building2,
+  ArrowRightLeft,
 } from "lucide-react";
 import { AccountForm } from "@/components/accounts/account-form";
 import { AccountActions } from "@/components/accounts/account-actions";
+import { TransferForm } from "@/components/accounts/transfer-form";
 import { getAccounts } from "@/lib/actions/accounts";
 
 export default async function Accounts() {
@@ -43,12 +45,20 @@ export default async function Accounts() {
               Manage your financial accounts and balances
             </p>
           </div>
-          <AccountForm>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Account
-            </Button>
-          </AccountForm>
+          <div className="flex gap-2">
+            <AccountForm>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Add Account
+              </Button>
+            </AccountForm>
+            <TransferForm accounts={accounts}>
+              <Button variant="outline">
+                <ArrowRightLeft className="mr-2 h-4 w-4" />
+                Transfer Money
+              </Button>
+            </TransferForm>
+          </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

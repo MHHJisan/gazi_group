@@ -507,7 +507,7 @@ export function TransactionList({ transactions }: TransactionListProps) {
                   key={transaction.id}
                   className="flex items-center justify-between p-4 border rounded-lg"
                 >
-                  <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-4 flex-1">
                     <div
                       className={`p-2 rounded-full ${
                         transaction.type === "INCOME"
@@ -521,7 +521,7 @@ export function TransactionList({ transactions }: TransactionListProps) {
                         <ArrowDownRight className="h-4 w-4 text-red-600" />
                       )}
                     </div>
-                    <div>
+                    <div className="flex-1">
                       <p className="font-medium">{transaction.category}</p>
                       <p className="text-sm text-muted-foreground">
                         {transaction.description || "No description"}
@@ -534,25 +534,27 @@ export function TransactionList({ transactions }: TransactionListProps) {
                       </p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p
-                      className={`text-lg font-bold ${
-                        transaction.type === "INCOME"
-                          ? "text-green-600"
-                          : "text-red-600"
-                      }`}
-                    >
-                      {transaction.type === "INCOME" ? "+" : "-"}$
-                      {Math.abs(parseFloat(transaction.amount || "0")).toFixed(
-                        2,
-                      )}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatDate(transaction.date)}
-                    </p>
-                  </div>
-                  <div className="flex gap-1">
-                    <TransactionActions transaction={transaction} />
+                  <div className="flex items-center gap-4">
+                    <div className="text-right min-w-[120px]">
+                      <p
+                        className={`text-lg font-bold ${
+                          transaction.type === "INCOME"
+                            ? "text-green-600"
+                            : "text-red-600"
+                        }`}
+                      >
+                        {transaction.type === "INCOME" ? "+" : "-"}$
+                        {Math.abs(
+                          parseFloat(transaction.amount || "0"),
+                        ).toFixed(2)}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatDate(transaction.date)}
+                      </p>
+                    </div>
+                    <div className="flex gap-1">
+                      <TransactionActions transaction={transaction} />
+                    </div>
                   </div>
                 </div>
               ))

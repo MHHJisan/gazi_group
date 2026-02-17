@@ -7,7 +7,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Building2, MapPin, Layers } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Building2, MapPin, Layers, Plus } from "lucide-react";
 import { EntityForm } from "@/components/entities/entity-form";
 import { EntityActions } from "@/components/entities/entity-actions";
 import { AccountForm } from "@/components/accounts/account-form";
@@ -16,16 +17,17 @@ import { getAccounts } from "@/lib/actions/accounts";
 import { formatDate } from "@/lib/utils/date";
 import { UnitForm } from "@/components/units/unit-form";
 import { UnitActions } from "@/components/units/unit-actions";
+import { EntityUnitForm } from "@/components/units/entity-unit-form";
 import { getEntities } from "@/lib/actions/entities";
 import { getUnits } from "@/lib/actions/units";
 
 export default async function Entities() {
   const entitiesResult = await getEntities(1);
-  const entities = entitiesResult.success ? entitiesResult.data : [];
+  const entities = entitiesResult.success ? entitiesResult.data || [] : [];
 
   // Get units for all entities
   const unitsResult = await getUnits();
-  const allUnits = unitsResult.success ? unitsResult.data : [];
+  const allUnits = unitsResult.success ? unitsResult.data || [] : [];
 
   // Group units by entity
   const unitsByEntity = (allUnits || []).reduce(
@@ -85,19 +87,36 @@ export default async function Entities() {
                     <div>
                       <strong>Created:</strong> {formatDate(entity.created_at)}
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Layers className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <strong>Units:</strong>{" "}
-                        {unitsByEntity[entity.id]?.length || 0} unit(s)
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Layers className="h-4 w-4 text-muted-foreground" />
+                        <div>
+                          <strong>Units:</strong>{" "}
+                          {unitsByEntity[entity.id]?.length || 0} unit(s)
+                        </div>
                       </div>
+                      <EntityUnitForm
+                        entity={{
+                          id: entity.id,
+                          name: entity.name,
+                          type: entity.type as "BUSINESS" | "PROPERTY",
+                        }}
+                      >
+                        <Button
+                          size="sm"
+                          className="bg-blue-600 hover:bg-blue-700 text-white"
+                        >
+                          <Plus className="h-3 w-3 mr-1" />
+                          Add Unit
+                        </Button>
+                      </EntityUnitForm>
                     </div>
                     {unitsByEntity[entity.id] &&
                       unitsByEntity[entity.id].length > 0 && (
                         <div className="mt-2">
                           <strong>Unit List:</strong>
                           <div className="ml-2 mt-1 space-y-1">
-                            {unitsByEntity[entity.id].map((unit) => (
+                            {unitsByEntity[entity.id].map((unit: any) => (
                               <div
                                 key={unit.id}
                                 className="flex items-center justify-between text-xs bg-muted px-2 py-1 rounded"

@@ -300,10 +300,13 @@ export function AccountActions({ account }: AccountActionsProps) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="USD">USD</SelectItem>
-                  <SelectItem value="EUR">EUR</SelectItem>
-                  <SelectItem value="GBP">GBP</SelectItem>
-                  <SelectItem value="JPY">JPY</SelectItem>
+                  <SelectItem value="USD">USD - US Dollar ($)</SelectItem>
+                  <SelectItem value="EUR">EUR - Euro (€)</SelectItem>
+                  <SelectItem value="GBP">GBP - British Pound (£)</SelectItem>
+                  <SelectItem value="JPY">JPY - Japanese Yen (¥)</SelectItem>
+                  <SelectItem value="BDT">
+                    BDT - Bangladeshi Taka (৳)
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>

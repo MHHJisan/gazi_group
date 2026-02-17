@@ -150,3 +150,135 @@ export async function deleteAccountAction(id: number) {
     };
   }
 }
+
+export async function transferMoney(
+  fromAccountId: number,
+  toAccountId: number,
+  amount: string,
+  description?: string,
+) {
+  try {
+    // Get current account details
+    const { data: fromAccount, error: fromError } = await supabase
+      .from("accounts")
+      .select("*")
+      .eq("id", fromAccountId)
+      .single();
+
+    const { data: toAccount, error: toError } = await supabase
+      .from("accounts")
+      .select("*")
+      .eq("id", toAccountId)
+      .single();
+
+    if (fromError || toError) {
+      return {
+        success: false,
+        error: "Failed to fetch account details",
+      };
+    }
+
+    if (!fromAccount || !toAccount) {
+      return {
+        success: false,
+        error: "Account not found",
+      };
+    }
+
+    // Check if accounts have same currency
+    if (fromAccount.currency !== toAccount.currency) {
+      return {
+        success: false,
+        error: "Cannot transfer between different currencies",
+      };
+    }
+
+    // Check sufficient balance
+    const transferAmount = parseFloat(amount);
+    const currentBalance = parseFloat(fromAccount.balance || "0");
+
+    if (currentBalance < transferAmount) {
+      return {
+        success: false,
+        error: "Insufficient balance",
+      };
+    }
+
+    // Perform transfer
+    const newFromBalance = currentBalance - transferAmount;
+    const newToBalance = parseFloat(toAccount.balance || "0") + transferAmount;
+
+    // Update both accounts
+    const { error: updateFromError } = await supabase
+      .from("accounts")
+      .update({
+        balance: newFromBalance.toString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", fromAccountId);
+
+    const { error: updateToError } = await supabase
+      .from("accounts")
+      .update({
+        balance: newToBalance.toString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", toAccountId);
+
+    if (updateFromError || updateToError) {
+      return {
+        success: false,
+        error: "Failed to update account balances",
+      };
+    }
+
+    // Create transfer records
+    const { error: transactionError } = await supabase
+      .from("transactions")
+      .insert([
+        {
+          description: description || `Transfer to ${toAccount.name}`,
+          amount: amount,
+          type: "EXPENSE",
+          category: "Transfer",
+          date: new Date().toISOString().split("T")[0],
+          entity_id: 1, // Default entity, you might want to make this configurable
+          account_id: fromAccountId,
+          recipient: toAccount.name,
+        },
+        {
+          description: description || `Transfer from ${fromAccount.name}`,
+          amount: amount,
+          type: "INCOME",
+          category: "Transfer",
+          date: new Date().toISOString().split("T")[0],
+          entity_id: 1, // Default entity, you might want to make this configurable
+          account_id: toAccountId,
+          recipient: fromAccount.name,
+        },
+      ]);
+
+    if (transactionError) {
+      console.error("Error creating transfer transactions:", transactionError);
+      // Note: Account balances are already updated, so we don't rollback here
+      // In a production app, you might want to implement proper transaction handling
+    }
+
+    return {
+      success: true,
+      data: {
+        fromAccount: fromAccount.name,
+        toAccount: toAccount.name,
+        amount: transferAmount,
+        currency: fromAccount.currency,
+      },
+    };
+  } catch (error) {
+    console.error("Error transferring money:", error);
+    return {
+      success: false,
+      error:
+        error instanceof Error ? error.message : "Failed to transfer money",
+    };
+  }
+}

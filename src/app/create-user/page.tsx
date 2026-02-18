@@ -5,7 +5,13 @@ import { createTestUser } from "@/lib/admin-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export default function CreateUserPage() {
   const [email, setEmail] = useState("");
@@ -25,8 +31,8 @@ export default function CreateUserPage() {
 
     try {
       const result = await createTestUser(email, password, name);
-      setMessage(result.message);
-      
+      setMessage(result.message || "User creation completed");
+
       if (result.success) {
         // Clear form on success
         setEmail("");
@@ -79,18 +85,20 @@ export default function CreateUserPage() {
               placeholder="Test User"
             />
           </div>
-          
+
           {message && (
-            <div className={`p-3 rounded-md text-sm ${
-              message.includes("successfully") 
-                ? "bg-green-50 text-green-800 border-green-200" 
-                : "bg-red-50 text-red-800 border-red-200"
-            }`}>
+            <div
+              className={`p-3 rounded-md text-sm ${
+                message.includes("successfully")
+                  ? "bg-green-50 text-green-800 border-green-200"
+                  : "bg-red-50 text-red-800 border-red-200"
+              }`}
+            >
               {message}
             </div>
           )}
-          
-          <Button 
+
+          <Button
             onClick={handleCreateUser}
             disabled={isLoading}
             className="w-full"

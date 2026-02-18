@@ -35,8 +35,11 @@ export function UserForm({ onUserCreated }: UserFormProps) {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    password: "",
+    confirmPassword: "",
     role: "user" as "admin" | "manager" | "user",
     status: "active" as "active" | "inactive",
+    phone_code: "+1",
     phone: "",
     department: "",
   });
@@ -46,16 +49,35 @@ export function UserForm({ onUserCreated }: UserFormProps) {
     setIsLoading(true);
     setError(null);
 
+    // Validate passwords match
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match");
+      setIsLoading(false);
+      return;
+    }
+
+    // Validate password strength
+    if (formData.password.length < 6) {
+      setError("Password must be at least 6 characters long");
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      const result = await createUser(formData);
+      // Remove confirmPassword before sending to database
+      const { confirmPassword, ...userDataToSubmit } = formData;
+      const result = await createUser(userDataToSubmit);
 
       if (result.success) {
         // Reset form
         setFormData({
           name: "",
           email: "",
+          password: "",
+          confirmPassword: "",
           role: "user",
           status: "active",
+          phone_code: "+1",
           phone: "",
           department: "",
         });
@@ -172,12 +194,63 @@ export function UserForm({ onUserCreated }: UserFormProps) {
               <Label htmlFor="phone" className="text-right">
                 Phone
               </Label>
+              <div className="col-span-3 flex gap-2">
+                <Select
+                  value={formData.phone_code}
+                  onValueChange={(value) =>
+                    handleInputChange("phone_code", value)
+                  }
+                >
+                  <SelectTrigger className="w-24">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="+1">🇺🇸🇨🇦 +1</SelectItem>
+                    <SelectItem value="+44">🇬🇧 +44</SelectItem>
+                    <SelectItem value="+49">🇩🇪 +49</SelectItem>
+                    <SelectItem value="+61">🇦🇺 +61</SelectItem>
+                    <SelectItem value="+86">🇨🇳 +86</SelectItem>
+                    <SelectItem value="+880">🇧🇩 +880</SelectItem>
+                    <SelectItem value="+91">🇮🇳 +91</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Input
+                  id="phone"
+                  value={formData.phone}
+                  onChange={(e) => handleInputChange("phone", e.target.value)}
+                  className="flex-1"
+                  placeholder="Enter phone number"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="password" className="text-right">
+                Password
+              </Label>
               <Input
-                id="phone"
-                value={formData.phone}
-                onChange={(e) => handleInputChange("phone", e.target.value)}
+                id="password"
+                type="password"
+                value={formData.password}
+                onChange={(e) => handleInputChange("password", e.target.value)}
                 className="col-span-3"
-                placeholder="Enter phone number"
+                placeholder="Enter password"
+                required
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="confirmPassword" className="text-right">
+                Confirm Password
+              </Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                value={formData.confirmPassword}
+                onChange={(e) =>
+                  handleInputChange("confirmPassword", e.target.value)
+                }
+                className="col-span-3"
+                placeholder="Confirm password"
+                required
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">

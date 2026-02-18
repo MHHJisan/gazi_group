@@ -35,17 +35,11 @@ import { getEntities } from "@/lib/actions/entities";
 import { getUnits } from "@/lib/actions/units";
 import { formatDate } from "@/lib/utils/date";
 import { ExportButton } from "@/components/reports/export-button";
-import { createClient } from "@/utils/supabase/server";
-import { redirect } from "next/navigation";
+import { getAuthenticatedUser } from "@/lib/auth";
 
 export default async function Reports() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    redirect("/login");
-  }
+  // Check authentication (supports both Supabase Auth and custom auth)
+  const authenticatedUser = await getAuthenticatedUser();
 
   const transactionsResult = await getTransactions();
   const transactions = transactionsResult.success

@@ -8,17 +8,12 @@ import { getTransactions } from "@/lib/actions/transactions";
 import { getUnits } from "@/lib/actions/units";
 import { getAccounts } from "@/lib/actions/accounts";
 import { Transaction } from "@/lib/supabase-client";
-import { createClient } from "@/utils/supabase/server";
+import { getAuthenticatedUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
 export default async function Transactions() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    redirect("/login");
-  }
+  // Check authentication (supports both Supabase Auth and custom auth)
+  const authenticatedUser = await getAuthenticatedUser();
 
   const entitiesResult = await getEntities();
   const transactionsResult = await getTransactions();

@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { getAuthenticatedUserClient } from "@/lib/auth-client";
 import {
   Settings,
   User,
@@ -41,18 +42,21 @@ export default function SettingsPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [user, setUser] = useState(null);
 
   // Check authentication on component mount
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
+        const user = await getAuthenticatedUserClient();
 
         if (!user) {
           router.push("/login");
+          return;
         }
+
+        setUser(user);
+        setAuthLoading(false);
       } catch (error) {
         console.error("Auth check failed:", error);
         router.push("/login");

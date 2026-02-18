@@ -7,6 +7,7 @@ export type User = {
   role: "admin" | "manager" | "user";
   status: "active" | "inactive";
   phone?: string;
+  phone_code?: string;
   department?: string;
   created_at: string;
   last_login?: string;

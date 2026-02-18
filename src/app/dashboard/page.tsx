@@ -7,8 +7,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { BarChart3, Wallet, TrendingUp, CreditCard } from "lucide-react";
-import { createClient } from "@/utils/supabase/server";
-import { redirect } from "next/navigation";
+import { getAuthenticatedUser } from "@/lib/auth";
 import { getAccounts } from "@/lib/actions/accounts";
 import { getTransactions } from "@/lib/actions/transactions";
 import type { Transaction } from "@/lib/supabase-client";
@@ -17,15 +16,9 @@ export const dynamic = "force-dynamic";
 
 export default async function Dashboard() {
   type AccountRow = { balance?: string | null; is_active?: boolean | null };
-  const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
+  // Check authentication (supports both Supabase Auth and custom auth)
+  const authenticatedUser = await getAuthenticatedUser();
 
   const accountsResult = await getAccounts();
   const accounts: AccountRow[] = accountsResult.success

@@ -28,3 +28,17 @@ export async function createClient() {
     },
   );
 }
+
+export async function getCustomUser() {
+  const cookieStore = await cookies();
+  const customSession = cookieStore.get("custom-session")?.value;
+
+  if (!customSession) return null;
+
+  try {
+    const session = JSON.parse(customSession);
+    return session.user;
+  } catch {
+    return null;
+  }
+}

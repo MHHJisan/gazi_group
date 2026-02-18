@@ -49,7 +49,8 @@ export default function LoginPage() {
 
       if (response.ok) {
         // Login successful, redirect to dashboard
-        window.location.href = "/dashboard";
+        router.push("/dashboard");
+        router.refresh(); // Refresh to update server components
       } else {
         const data = await response.json();
         setErrorMessage(data.error || "Login failed");

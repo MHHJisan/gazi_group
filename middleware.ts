@@ -18,9 +18,12 @@ function isPublicPath(pathname: string) {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const hasAccessToken = Boolean(request.cookies.get("sb-access-token")?.value);
+  const hasCustomSession = Boolean(
+    request.cookies.get("custom-session")?.value,
+  );
 
   if (pathname === "/login") {
-    if (hasAccessToken) {
+    if (hasAccessToken || hasCustomSession) {
       const url = request.nextUrl.clone();
       url.pathname = "/dashboard";
       url.search = "";
@@ -33,7 +36,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  if (!hasAccessToken) {
+  if (!hasAccessToken && !hasCustomSession) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.search = "";

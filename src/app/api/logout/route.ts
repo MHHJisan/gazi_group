@@ -11,6 +11,7 @@ export async function POST(_request: NextRequest) {
       { status: 200 },
     );
 
+    // Clear Supabase Auth cookies
     response.cookies.set("sb-access-token", "", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -26,11 +27,17 @@ export async function POST(_request: NextRequest) {
       maxAge: 0,
     });
 
+    // Clear custom session cookie
+    response.cookies.set("custom-session", "", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 0,
+    });
+
     return response;
   } catch (error) {
-    return NextResponse.json(
-      { error: "Logout failed" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Logout failed" }, { status: 500 });
   }
 }

@@ -49,12 +49,27 @@ export default function Users() {
   const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [changePasswordUserId, setChangePasswordUserId] = useState<
     string | null
   >(null);
   const [changePasswordUserName, setChangePasswordUserName] =
     useState<string>("");
   const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
+
+  // Helper function to get country flag based on country code
+  const getCountryFlag = (phone_code?: string) => {
+    const flagMap: { [key: string]: string } = {
+      "+1": "🇺🇸🇨🇦", // US/Canada
+      "+44": "🇬🇧", // UK
+      "+49": "🇩🇪", // Germany
+      "+61": "🇦🇺", // Australia
+      "+86": "🇨🇳", // China
+      "+880": "🇧🇩", // Bangladesh
+      "+91": "🇮🇳", // India
+    };
+    return flagMap[phone_code || ""] || "";
+  };
 
   // Fetch users on component mount
   useEffect(() => {
@@ -333,7 +348,15 @@ export default function Users() {
                         <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
                           <div className="flex items-center gap-1">
                             <Phone className="h-3 w-3" />
-                            {user.phone || "N/A"}
+                            {user.phone ? (
+                              <span>
+                                {getCountryFlag(user.phone_code)}{" "}
+                                {user.phone_code}
+                                {user.phone}
+                              </span>
+                            ) : (
+                              "N/A"
+                            )}
                           </div>
                           <div className="flex items-center gap-1">
                             <Mail className="h-3 w-3" />

@@ -12,30 +12,35 @@ if (!supabaseUrl || !supabaseKey) {
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 export async function getAuthenticatedUserClient() {
-  // First try Supabase Auth
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
-
-  if (user) {
-    return user;
-  }
-
-  // If Supabase Auth fails, check for custom session
-  const customSession = document.cookie
-    .split("; ")
-    .find((cookie) => cookie.trim().startsWith("custom-session="))
-    ?.split("=")[1];
-
-  if (!customSession) {
-    return null;
-  }
+  console.log("🔍 Client-side auth check starting...");
 
   try {
-    const session = JSON.parse(decodeURIComponent(customSession));
-    return session.user;
-  } catch {
+    const response = await fetch("/api/auth/me", {
+      method: "GET",
+      credentials: "include", // Important for cookies
+    });
+
+    if (!response.ok) {
+      console.log("❌ Auth check failed:", response.status);
+      return null;
+    }
+
+    const data = await response.json();
+    console.log("📊 Auth API result:", data);
+
+    if (data.authenticated && data.user) {
+      console.log(
+        "✅ User authenticated:",
+        data.user.email,
+        `(${data.authMethod})`,
+      );
+      return data.user;
+    }
+
+    console.log("❌ User not authenticated");
+    return null;
+  } catch (error) {
+    console.log("❌ Auth check error:", error);
     return null;
   }
 }

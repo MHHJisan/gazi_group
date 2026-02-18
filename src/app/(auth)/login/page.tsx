@@ -13,12 +13,33 @@ import {
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { AlertCircle } from "lucide-react";
+import { getAuthenticatedUserClient } from "@/lib/auth-client";
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  // Check if user is already logged in
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const user = await getAuthenticatedUserClient();
+
+        if (user) {
+          // User is already logged in, redirect to dashboard with alert
+          alert("You are already logged in");
+          router.push("/dashboard");
+          return;
+        }
+      } catch (error) {
+        console.error("Auth check failed:", error);
+      }
+    };
+
+    checkAuth();
+  }, [router]);
 
   // Show error from URL if present
   useEffect(() => {

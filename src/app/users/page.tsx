@@ -47,7 +47,6 @@ import { ForgotPasswordModal } from "@/components/users/forgot-password-modal";
 
 export default function Users() {
   const router = useRouter();
-  const [authLoading, setAuthLoading] = useState(true);
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [changePasswordUserId, setChangePasswordUserId] = useState<
@@ -57,41 +56,8 @@ export default function Users() {
     useState<string>("");
   const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
 
-  // Check authentication on component mount
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        // Try getSession first, then fallback to getUser
-        const { data: session } = await supabase.auth.getSession();
-
-        if (!session?.session?.user) {
-          // If no session, try getUser
-          const {
-            data: { user },
-          } = await supabase.auth.getUser();
-          if (!user) {
-            console.log("No authenticated user found, redirecting to login");
-            router.push("/login");
-            return;
-          }
-        }
-
-        console.log("User authenticated successfully");
-      } catch (error) {
-        console.error("Auth check failed:", error);
-        router.push("/login");
-      } finally {
-        setAuthLoading(false);
-      }
-    };
-
-    checkAuth();
-  }, [router]);
-
   // Fetch users on component mount
   useEffect(() => {
-    if (authLoading) return; // Don't fetch users while checking auth
-
     const fetchUsers = async () => {
       setIsLoading(true);
       const usersResult = await getUsers();
@@ -104,15 +70,7 @@ export default function Users() {
     };
 
     fetchUsers();
-  }, [authLoading]);
-
-  if (authLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Loading...</div>
-      </div>
-    );
-  }
+  }, []);
 
   const totalUsers = users.length;
   const activeUsers = users.filter((user) => user.status === "active").length;

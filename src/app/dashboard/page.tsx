@@ -9,10 +9,14 @@ import {
 import { BarChart3, Wallet, TrendingUp, CreditCard } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
+import { getAccounts } from "@/lib/actions/accounts";
+import { getTransactions } from "@/lib/actions/transactions";
+import type { Transaction } from "@/lib/supabase-client";
 
 export const dynamic = "force-dynamic";
 
 export default async function Dashboard() {
+  type AccountRow = { balance?: string | null; is_active?: boolean | null };
   const supabase = await createClient();
 
   const {
@@ -22,6 +26,39 @@ export default async function Dashboard() {
   if (!user) {
     redirect("/login");
   }
+
+  const accountsResult = await getAccounts();
+  const accounts: AccountRow[] = accountsResult.success
+    ? (accountsResult.data as AccountRow[]) || []
+    : [];
+  const totalBalance = accounts.reduce(
+    (sum: number, a: AccountRow) => sum + parseFloat(a.balance || "0"),
+    0,
+  );
+  const activeAccounts = accounts.filter((a) => !!a.is_active).length;
+
+  const transactionsResult = await getTransactions();
+  const transactions: Transaction[] = transactionsResult.success
+    ? (transactionsResult.data as Transaction[]) || []
+    : [];
+
+  const now = new Date();
+  const thirtyDaysAgo = new Date(now);
+  thirtyDaysAgo.setDate(now.getDate() - 30);
+
+  const inLast30 = transactions.filter((t: Transaction) => {
+    const d = new Date(t.date);
+    return d >= thirtyDaysAgo && d <= now;
+  });
+
+  const income30 = inLast30
+    .filter((t: Transaction) => t.type === "INCOME")
+    .reduce((s: number, t: Transaction) => s + parseFloat(t.amount || "0"), 0);
+  const expenses30 = inLast30
+    .filter((t: Transaction) => t.type === "EXPENSE")
+    .reduce((s: number, t: Transaction) => s + parseFloat(t.amount || "0"), 0);
+
+  const recentTransactions = transactions.slice(0, 5);
 
   return (
     <DashboardLayout>
@@ -42,9 +79,14 @@ export default async function Dashboard() {
               <Wallet className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">$125,000.00</div>
+              <div className="text-2xl font-bold">
+                {new Intl.NumberFormat("en-US", {
+                  style: "currency",
+                  currency: "USD",
+                }).format(totalBalance)}
+              </div>
               <p className="text-xs text-muted-foreground">
-                +12.5% from last month
+                Across all accounts
               </p>
             </CardContent>
           </Card>
@@ -55,10 +97,13 @@ export default async function Dashboard() {
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">$45,231.89</div>
-              <p className="text-xs text-muted-foreground">
-                +20.1% from last month
-              </p>
+              <div className="text-2xl font-bold">
+                {new Intl.NumberFormat("en-US", {
+                  style: "currency",
+                  currency: "USD",
+                }).format(income30)}
+              </div>
+              <p className="text-xs text-muted-foreground">Last 30 days</p>
             </CardContent>
           </Card>
 
@@ -68,10 +113,13 @@ export default async function Dashboard() {
               <CreditCard className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">$12,234.89</div>
-              <p className="text-xs text-muted-foreground">
-                -5.3% from last month
-              </p>
+              <div className="text-2xl font-bold">
+                {new Intl.NumberFormat("en-US", {
+                  style: "currency",
+                  currency: "USD",
+                }).format(expenses30)}
+              </div>
+              <p className="text-xs text-muted-foreground">Last 30 days</p>
             </CardContent>
           </Card>
 
@@ -83,8 +131,10 @@ export default async function Dashboard() {
               <BarChart3 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">24</div>
-              <p className="text-xs text-muted-foreground">+2 new this month</p>
+              <div className="text-2xl font-bold">{activeAccounts}</div>
+              <p className="text-xs text-muted-foreground">
+                {accounts.length} total
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -109,28 +159,39 @@ export default async function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="flex items-center">
-                  <div className="ml-4 space-y-1">
-                    <p className="text-sm font-medium leading-none">
-                      Payment received
-                    </p>
-                    <p className="text-sm text-muted-foreground">Client A</p>
+                {recentTransactions.length === 0 ? (
+                  <div className="text-sm text-muted-foreground">
+                    No recent transactions
                   </div>
-                  <div className="ml-auto font-medium">+$5,000</div>
-                </div>
-                <div className="flex items-center">
-                  <div className="ml-4 space-y-1">
-                    <p className="text-sm font-medium leading-none">
-                      Office rent
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Monthly expense
-                    </p>
-                  </div>
-                  <div className="ml-auto font-medium text-red-600">
-                    -$2,500
-                  </div>
-                </div>
+                ) : (
+                  recentTransactions.map((t: Transaction) => {
+                    const isIncome = t.type === "INCOME";
+                    const amount = `${isIncome ? "+" : "-"}${new Intl.NumberFormat(
+                      "en-US",
+                      {
+                        style: "currency",
+                        currency: "USD",
+                      },
+                    ).format(parseFloat(t.amount || "0"))}`;
+                    return (
+                      <div key={t.id} className="flex items-center">
+                        <div className="ml-4 space-y-1">
+                          <p className="text-sm font-medium leading-none">
+                            {t.description || (isIncome ? "Income" : "Expense")}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {new Date(t.date).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div
+                          className={`ml-auto font-medium ${isIncome ? "" : "text-red-600"}`}
+                        >
+                          {amount}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
               </div>
             </CardContent>
           </Card>

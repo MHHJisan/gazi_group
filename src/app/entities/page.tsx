@@ -63,7 +63,7 @@ export default async function Entities() {
           </div>
           <div className="flex gap-2">
             <EntityForm />
-            <UnitForm entities={entities} />
+            {/* <UnitForm entities={entities} /> */}
           </div>
         </div>
 
@@ -126,25 +126,27 @@ export default async function Entities() {
                         <div className="mt-2">
                           <strong>Unit List:</strong>
                           <div className="ml-2 mt-1 space-y-1">
-                            {unitsByEntity[entity.id].map((unit: any) => (
-                              <div
-                                key={unit.id}
-                                className="flex items-center justify-between text-xs bg-muted px-2 py-1 rounded"
-                              >
-                                <div>
-                                  {unit.name}
-                                  {unit.description && (
-                                    <span className="text-muted-foreground">
-                                      {" - "}
-                                      {unit.description}
-                                    </span>
-                                  )}
+                            {unitsByEntity[entity.id].map(
+                              (unit: (typeof allUnits)[number]) => (
+                                <div
+                                  key={unit.id}
+                                  className="flex items-center justify-between text-xs bg-muted px-2 py-1 rounded"
+                                >
+                                  <div>
+                                    {unit.name}
+                                    {unit.description && (
+                                      <span className="text-muted-foreground">
+                                        {" - "}
+                                        {unit.description}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="flex gap-1">
+                                    <UnitActions unit={unit} />
+                                  </div>
                                 </div>
-                                <div className="flex gap-1">
-                                  <UnitActions unit={unit} />
-                                </div>
-                              </div>
-                            ))}
+                              ),
+                            )}
                           </div>
                         </div>
                       )}

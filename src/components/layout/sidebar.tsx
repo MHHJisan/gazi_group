@@ -42,9 +42,11 @@ export function Sidebar() {
   };
 
   return (
-    <div className="flex h-full w-64 flex-col bg-gray-50 border-r">
+    <div className="flex h-full w-64 flex-col bg-sidebar border-r">
       <div className="flex h-16 items-center px-6 border-b">
-        <h1 className="text-xl font-semibold text-gray-900">Financial Hub</h1>
+        <h1 className="text-xl font-semibold text-sidebar-foreground">
+          Financial Hub
+        </h1>
       </div>
       <nav className="flex-1 space-y-1 px-3 py-4">
         {navigation.map((item) => {
@@ -57,7 +59,7 @@ export function Sidebar() {
                 "flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                 isActive
                   ? "bg-primary text-primary-foreground"
-                  : "text-gray-700 hover:bg-gray-100 hover:text-gray-900",
+                  : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
               )}
             >
               <item.icon className="mr-3 h-5 w-5" />
